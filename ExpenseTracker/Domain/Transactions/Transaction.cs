@@ -17,12 +17,14 @@ public class Transaction : Entity<Guid>
         Description = description;
         DateTime = dateTime;
         Amount = amount;
+        BalanceId = balanceId;
         TransactionTypeId = transactionTypeId;
     }
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
     public DateTimeOffset DateTime { get; private set; }
     public decimal Amount { get; private set; }
+    public Guid BalanceId { get; set; }
     public int TransactionTypeId { get; private set; }
     public TransactionType TransactionType { get; init; }
     public IReadOnlyList<DomainEvent> Events => _events.AsReadOnly();
