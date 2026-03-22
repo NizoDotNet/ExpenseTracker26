@@ -1,9 +1,11 @@
 ﻿using ExpenseTracker.Domain.Primitives;
+using ExpenseTracker.Domain.Users.Events;
 
 namespace ExpenseTracker.Domain.Users;
 
 public class User : Entity<Guid>
 {
+    private readonly List<DomainEvent> _events = new();
     private User()
     {
     }
@@ -16,6 +18,13 @@ public class User : Entity<Guid>
     public string Email { get; private set; } = null!;
     public string UserName { get; private set; } = null!;
     public string Password { get; private set; } = null!;
+    public Guid BalanceId { get; set; }
+    public IReadOnlyList<DomainEvent> DomainEvents => _events.AsReadOnly();
+
+    public void Raise(DomainEvent domainEvent)
+    {
+        _events.Add(domainEvent);
+    }
 
     public static User Create(string email, string? username, string password)
     {
@@ -24,7 +33,10 @@ public class User : Entity<Guid>
         if (string.IsNullOrWhiteSpace(password) && password.Length < 5)
             throw new Exception("Password min length is 5");
 
-        return new(email, username, password);
+        User user = new(email, username, password);
+        user.Raise(new UserCreated(email));
+
+        return user;
     }
 
 }
