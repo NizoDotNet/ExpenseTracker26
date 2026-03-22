@@ -20,6 +20,7 @@ public class Transaction : Entity<Guid>
         BalanceId = balanceId;
         TransactionTypeId = transactionTypeId;
     }
+
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
     public DateTimeOffset DateTime { get; private set; }
