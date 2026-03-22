@@ -20,8 +20,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(c => c.Password)
             .IsRequired();
 
+        builder.Ignore(c => c.DomainEvents);
+
+
         builder.HasOne(c => c.Balance)
-            .WithOne()
+            .WithOne(c => c.User)
             .HasForeignKey<Balance>(c => c.UserId);
 
     }

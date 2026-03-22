@@ -26,7 +26,7 @@ public class Transaction : Entity<Guid>
     public decimal Amount { get; private set; }
     public Guid BalanceId { get; set; }
     public int TransactionTypeId { get; private set; }
-    public TransactionCategory TransactionType { get; init; }
+    public TransactionCategory TransactionCategory { get; init; }
     public IReadOnlyList<DomainEvent> Events => _events.AsReadOnly();
     public void Raise(DomainEvent domainEvent)
     {

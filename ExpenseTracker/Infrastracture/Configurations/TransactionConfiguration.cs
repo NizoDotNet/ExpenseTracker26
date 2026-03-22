@@ -23,8 +23,9 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 
         builder.Ignore(c => c.Events);
 
-        builder.HasOne<Balance>();
+        builder.HasIndex(c => c.BalanceId);
 
-        builder.HasOne<TransactionCategory>();
+        builder.HasOne(c => c.TransactionCategory)
+           .WithMany();
     }
 }

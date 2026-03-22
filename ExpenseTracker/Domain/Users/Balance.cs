@@ -10,6 +10,7 @@ public class Balance : Entity<Guid>
     }
 
     public decimal Amount { get; private set; }
+    public User User { get; init; }
     public Guid UserId { get; private set; }
 
     public void ApplyTransaction(decimal amount)
