@@ -28,14 +28,23 @@ public class UserService
         return user;
     }
 
-    public async Task<UserResponse?> GetAsync(Guid userId)
+    public async Task<UserResponse?> GetAsync(Guid userId, bool tracking)
     {
-        return await _db.Users
+        IQueryable<User> userQuery = _db.Users;
+
+        if(!tracking)
+        {
+            userQuery = userQuery
+                .AsNoTracking();
+        }
+
+        return await userQuery
             .Select(c => new UserResponse(
                 c.Id,
-                c.Email, 
-                c.UserName, 
+                c.Email,
+                c.UserName,
                 new BalanceResponse(c.Balance.Amount)))
             .FirstOrDefaultAsync(c => c.Id == userId);
     }
+}
 }
