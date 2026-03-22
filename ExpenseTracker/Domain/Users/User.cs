@@ -1,5 +1,7 @@
 ﻿using ExpenseTracker.Domain.Primitives;
 using ExpenseTracker.Domain.Users.Events;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System.Security.Cryptography;
 
 namespace ExpenseTracker.Domain.Users;
 
@@ -10,12 +12,11 @@ public class User : Entity<Guid>
     {
         Balance = Users.Balance.Create();
     }
-    internal User(string email, string userName, string password)
+    internal User(string email, string userName)
     {
         Id = Guid.NewGuid();
         Email = email;
         UserName = userName;
-        Password = password;
     }
     public string Email { get; private set; } = null!;
     public string UserName { get; private set; } = null!;
@@ -29,14 +30,24 @@ public class User : Entity<Guid>
         _events.Add(domainEvent);
     }
 
-    public static User Create(string email, string? username, string password)
+    public void SetPassword(string password)
+    {
+        byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
+        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: password!,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 100000,
+            numBytesRequested: 256 / 8));
+
+        Password = password;
+    }
+    public static User Create(string email, string? username)
     {
         if(string.IsNullOrWhiteSpace(email)) throw new ArgumentNullException("email");
         if(string.IsNullOrWhiteSpace(username)) username = email;
-        if (string.IsNullOrWhiteSpace(password) && password.Length < 5)
-            throw new Exception("Password min length is 5");
 
-        User user = new(email, username, password);
+        User user = new(email, username);
         user.Raise(new UserCreated(user.Id));
         return user;
     }
