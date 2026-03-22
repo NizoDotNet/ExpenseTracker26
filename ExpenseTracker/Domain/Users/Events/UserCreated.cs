@@ -4,9 +4,9 @@ namespace ExpenseTracker.Domain.Users.Events;
 
 public class UserCreated : DomainEvent
 {
-    public UserCreated(string email)
+    public UserCreated(Guid id)
     {
-        Email = email;
+        UserId = id;
     }
-    public string Email { get; }
+    public Guid UserId { get; }
 }

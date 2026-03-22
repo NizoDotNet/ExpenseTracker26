@@ -11,6 +11,7 @@ public class User : Entity<Guid>
     }
     internal User(string email, string userName, string password)
     {
+        Id = Guid.NewGuid();
         Email = email;
         UserName = userName;
         Password = password;
@@ -34,8 +35,7 @@ public class User : Entity<Guid>
             throw new Exception("Password min length is 5");
 
         User user = new(email, username, password);
-        user.Raise(new UserCreated(email));
-
+        user.Raise(new UserCreated(user.Id));
         return user;
     }
 
