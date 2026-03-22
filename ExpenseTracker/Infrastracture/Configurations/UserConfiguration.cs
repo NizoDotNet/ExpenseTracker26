@@ -25,5 +25,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne()
             .HasForeignKey<User>(c => c.BalanceId)
             .HasForeignKey<Balance>(c => c.UserId);
+
     }
 }

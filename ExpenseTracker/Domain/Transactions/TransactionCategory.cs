@@ -2,13 +2,13 @@
 
 namespace ExpenseTracker.Domain.Transactions;
 
-public class TransactionType : Entity<int>
+public class TransactionCategory : Entity<int>
 {
-    private TransactionType()
+    private TransactionCategory()
     {
         
     }
-    private TransactionType(string name)
+    private TransactionCategory(string name)
     {
         Name = name;
     }
@@ -17,7 +17,7 @@ public class TransactionType : Entity<int>
 
     
 
-    public static TransactionType Create(string name)
+    public static TransactionCategory Create(string name)
     {
         if(string.IsNullOrEmpty(name))
             throw new ArgumentNullException(nameof(name));
