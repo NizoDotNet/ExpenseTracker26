@@ -8,6 +8,7 @@ public class User : Entity<Guid>
     private readonly List<DomainEvent> _events = new();
     private User()
     {
+        Balance = Users.Balance.Create();
     }
     internal User(string email, string userName, string password)
     {
@@ -19,7 +20,8 @@ public class User : Entity<Guid>
     public string Email { get; private set; } = null!;
     public string UserName { get; private set; } = null!;
     public string Password { get; private set; } = null!;
-    public Guid BalanceId { get; set; }
+    public Guid BalanceId { get; init; }
+    public Balance Balance { get; init; }
     public IReadOnlyList<DomainEvent> DomainEvents => _events.AsReadOnly();
 
     public void Raise(DomainEvent domainEvent)

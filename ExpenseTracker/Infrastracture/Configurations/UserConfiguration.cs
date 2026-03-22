@@ -1,5 +1,4 @@
-﻿using ExpenseTracker.Domain.Balances;
-using ExpenseTracker.Domain.Users;
+﻿using ExpenseTracker.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,9 +20,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(c => c.Password)
             .IsRequired();
 
-        builder.HasOne<Balance>()
+        builder.HasOne(c => c.Balance)
             .WithOne()
-            .HasForeignKey<User>(c => c.BalanceId)
             .HasForeignKey<Balance>(c => c.UserId);
 
     }
