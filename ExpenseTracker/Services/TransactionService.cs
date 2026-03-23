@@ -1,6 +1,8 @@
 ﻿using ExpenseTracker.Application.Shared;
 using ExpenseTracker.Application.Shared.Enums;
 using ExpenseTracker.Application.Transactions.Events;
+using ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByTimePeriod;
+using ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByTimePeriod.Strategies;
 using ExpenseTracker.Application.Transactions.Requests;
 using ExpenseTracker.Application.Transactions.Responses;
 using ExpenseTracker.Domain.Transactions;
@@ -77,19 +79,19 @@ public class TransactionService
         return await PagedResult<TransactionResponse>.Create(transactionsQuery, page, pageSize);
     }
 
-    public async Task<Dictionary<string, TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(TimePeriod timePeriod, DateTimeOffset? dateTime = null)
+    public async Task<List<TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(TimePeriod timePeriod, bool? isIncome = null, DateTimeOffset? dateTime = null, CancellationToken cancellationToken = default)
     {
         dateTime ??= DateTimeOffset.UtcNow;
-        //Expression<Func<Transaction, bool>> getTimePeriod = timePeriod switch
-        //{
-        //    TimePeriod.Year => transaction => transaction.DateTime >= DateTimeOffset.Parse($"01.01.{transaction.DateTime.Year}")
-        //                                    && (transaction.DateTime <= DateTimeOffset.Parse($"31.12.{transaction.DateTime.Year}")),
-        //    TimePeriod.Week => transaction => true
-        //};
+        IGroupByTransactionByTimePeriod groupByTransactionByTimePeriod = GetStrategy(timePeriod);
 
-        //_db.Transactions
-        //    .Where(getTimePeriod);
-
-        throw new NotImplementedException();
+        return await groupByTransactionByTimePeriod.Handle(_db, (DateTimeOffset)dateTime, isIncome, cancellationToken);
     }
+
+
+    private IGroupByTransactionByTimePeriod GetStrategy(TimePeriod timePeriod)
+        => timePeriod switch
+        {
+            TimePeriod.Day => new GroupTransactionsByDay(),
+            TimePeriod.Month => new GroupByTransactionsByMonth()
+        };
 }

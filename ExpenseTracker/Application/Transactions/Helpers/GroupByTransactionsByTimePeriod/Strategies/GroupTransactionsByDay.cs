@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByTimePeriod.Strategies;
 
-public class GroupTransactionsByWeek : IGroupByTransactionByTimePeriod
+public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
 {
     public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, bool? isIncome = null, CancellationToken cancellationToken = default)
     {

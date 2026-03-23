@@ -8,6 +8,6 @@ public enum TransactionType
 
 public enum TimePeriod
 {
-    Week,
-    Year
+    Day,
+    Month
 }
