@@ -6,7 +6,7 @@ public class TransactionCategory : Entity<int>
 {
     private TransactionCategory()
     {
-        
+
     }
     private TransactionCategory(string name)
     {
@@ -15,11 +15,11 @@ public class TransactionCategory : Entity<int>
 
     public string Name { get; private set; } = null!;
 
-    
+
 
     public static TransactionCategory Create(string name)
     {
-        if(string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(name))
             throw new ArgumentNullException(nameof(name));
         return new(name);
     }

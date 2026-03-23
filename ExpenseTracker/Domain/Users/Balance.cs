@@ -6,7 +6,7 @@ public class Balance : Entity<Guid>
 {
     private Balance()
     {
-        Amount = 0.00m;        
+        Amount = 0.00m;
     }
 
     public decimal Amount { get; private set; }

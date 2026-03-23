@@ -1,6 +1,4 @@
-﻿using Microsoft.OpenApi;
-
-namespace ExpenseTracker.Application.Transactions.Requests;
+﻿namespace ExpenseTracker.Application.Transactions.Requests;
 
 public record CreateTransationRequest(
     string Name,

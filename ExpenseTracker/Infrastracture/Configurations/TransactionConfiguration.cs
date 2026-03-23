@@ -1,5 +1,4 @@
 ﻿using ExpenseTracker.Domain.Transactions;
-using ExpenseTracker.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

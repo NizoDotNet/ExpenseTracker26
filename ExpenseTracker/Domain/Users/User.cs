@@ -1,4 +1,5 @@
-﻿using ExpenseTracker.Domain.Primitives;
+﻿using ExpenseTracker.Domain.Helpers;
+using ExpenseTracker.Domain.Primitives;
 using ExpenseTracker.Domain.Users.Events;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
@@ -32,20 +33,14 @@ public class User : Entity<Guid>
 
     public void SetPassword(string password)
     {
-        byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
-        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: password!,
-            salt: salt,
-            prf: KeyDerivationPrf.HMACSHA256,
-            iterationCount: 100000,
-            numBytesRequested: 256 / 8));
+        password = PasswordHashingHelper.HashPassword(password);
 
         Password = password;
     }
     public static User Create(string email, string? username)
     {
-        if(string.IsNullOrWhiteSpace(email)) throw new ArgumentNullException("email");
-        if(string.IsNullOrWhiteSpace(username)) username = email;
+        if (string.IsNullOrWhiteSpace(email)) throw new ArgumentNullException("email");
+        if (string.IsNullOrWhiteSpace(username)) username = email;
 
         User user = new(email, username);
         user.Raise(new UserCreated(user.Id));

@@ -1,6 +1,4 @@
-﻿using ExpenseTracker.Application.Shared.Enums;
-
-namespace ExpenseTracker.Application.Transactions.Responses;
+﻿namespace ExpenseTracker.Application.Transactions.Responses;
 
 public record TransactionTimePeriodResponse
 {

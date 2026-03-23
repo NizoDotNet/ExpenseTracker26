@@ -8,7 +8,7 @@ public class Transaction : Entity<Guid>
     private readonly List<DomainEvent> _events = new();
     private Transaction()
     {
-        
+
     }
 
     private Transaction(Guid balanceId, string name, string? description, DateTimeOffset dateTime, decimal amount, int transactionCategoryId)
@@ -36,10 +36,10 @@ public class Transaction : Entity<Guid>
 
     public static Transaction Create(Guid balanceId, string name, string? description, DateTimeOffset dateTime, decimal amount, int transactionCategoryId)
     {
-        if(string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentNullException(nameof(name));
 
-        Transaction transaction = new(balanceId,name, description, dateTime, amount, transactionCategoryId);
+        Transaction transaction = new(balanceId, name, description, dateTime, amount, transactionCategoryId);
         transaction.Raise(new TransactionCreated(balanceId, amount));
         return transaction;
     }

@@ -1,6 +1,7 @@
 ﻿using ExpenseTracker.Application.Shared;
 using ExpenseTracker.Application.Users.Requests;
 using ExpenseTracker.Application.Users.Responses;
+using ExpenseTracker.Domain.Helpers;
 using ExpenseTracker.Domain.Users;
 using ExpenseTracker.Infrastracture;
 using FluentValidation;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Services;
 
-public class UserService 
+public class UserService
 {
     private readonly DatabaseContext _db;
     private readonly IValidator<CreateUserRequest> _createUserRequestValidator;
@@ -23,7 +24,7 @@ public class UserService
     {
         // TODO: Write validation
         var validation = _createUserRequestValidator.Validate(createUser);
-        if(!validation.IsValid)
+        if (!validation.IsValid)
         {
             return Result<User?>.Failed(null, validation.ToDictionary());
         }
@@ -36,11 +37,27 @@ public class UserService
         return Result<User?>.Succeed(user);
     }
 
+    public async Task<UserResponse?> LoginUser(string email, string password)
+    {
+        password = PasswordHashingHelper.HashPassword(password);
+
+        var user = await _db.Users
+            .AsNoTracking()
+            .Include(c => c.Balance)
+            .FirstOrDefaultAsync(c => c.Email == email && c.Password == password);
+
+        if (user == null) 
+            return null;
+
+
+        return new UserResponse(user.Id, user.Email, user.UserName, new(user.Balance.Amount));
+    }
+
     public async Task<UserResponse?> GetAsync(Guid userId, bool tracking)
     {
         IQueryable<User> userQuery = _db.Users;
 
-        if(!tracking)
+        if (!tracking)
         {
             userQuery = userQuery
                 .AsNoTracking();

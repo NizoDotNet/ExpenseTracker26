@@ -8,10 +8,8 @@ using ExpenseTracker.Application.Transactions.Responses;
 using ExpenseTracker.Domain.Transactions;
 using ExpenseTracker.Domain.Transactions.Events;
 using ExpenseTracker.Infrastracture;
-using ExpenseTracker.Migrations;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace ExpenseTracker.Services;
 
@@ -32,7 +30,7 @@ public class TransactionService
         // Validate Transaction
         var validation = _validator.Validate(createTransationRequest);
 
-        if(!validation.IsValid)
+        if (!validation.IsValid)
         {
             return Result<Transaction?>.Failed(null, validation.ToDictionary());
         }
@@ -49,7 +47,7 @@ public class TransactionService
         // Need add domain event dispatcher later
         TransactionCreatedHandler transactionCreatedHandler = new(_db, _ctx);
         await transactionCreatedHandler.Handle((TransactionCreated)transaction.Events[0], cancellationToken);
-        
+
         await _db.SaveChangesAsync(cancellationToken);
         return Result<Transaction?>.Succeed(transaction);
     }
