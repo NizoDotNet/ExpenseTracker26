@@ -1,12 +1,15 @@
 ﻿using ExpenseTracker.Application.Shared;
+using ExpenseTracker.Application.Shared.Enums;
 using ExpenseTracker.Application.Transactions.Events;
 using ExpenseTracker.Application.Transactions.Requests;
 using ExpenseTracker.Application.Transactions.Responses;
 using ExpenseTracker.Domain.Transactions;
 using ExpenseTracker.Domain.Transactions.Events;
 using ExpenseTracker.Infrastracture;
+using ExpenseTracker.Migrations;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ExpenseTracker.Services;
 
@@ -44,7 +47,7 @@ public class TransactionService
         // Need add domain event dispatcher later
         TransactionCreatedHandler transactionCreatedHandler = new(_db, _ctx);
         await transactionCreatedHandler.Handle((TransactionCreated)transaction.Events[0], cancellationToken);
-
+        
         await _db.SaveChangesAsync(cancellationToken);
         return Result<Transaction?>.Succeed(transaction);
     }
@@ -61,6 +64,7 @@ public class TransactionService
             .AsNoTracking()
             .Where(c => c.BalanceId == balanceId)
             .Include(c => c.TransactionCategory)
+            .OrderByDescending(c => c.DateTime)
             .Select(c => new TransactionResponse(
                 c.Id,
                 c.Name,
@@ -71,5 +75,20 @@ public class TransactionService
             .AsQueryable();
 
         return await PagedResult<TransactionResponse>.Create(transactionsQuery, page, pageSize);
+    }
+
+    public async Task<Dictionary<string, TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(TimePeriod timePeriod)
+    {
+        //Expression<Func<Transaction, bool>> getTimePeriod = timePeriod switch
+        //{
+        //    TimePeriod.Year => transaction => transaction.DateTime >= DateTimeOffset.Parse($"01.01.{transaction.DateTime.Year}")
+        //                                    && (transaction.DateTime <= DateTimeOffset.Parse($"31.12.{transaction.DateTime.Year}")),
+        //    TimePeriod.Week => transaction => true
+        //};
+
+        //_db.Transactions
+        //    .Where(getTimePeriod);
+
+        throw new NotImplementedException();
     }
 }
