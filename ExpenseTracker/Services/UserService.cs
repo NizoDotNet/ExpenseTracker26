@@ -47,4 +47,4 @@ public class UserService
             .FirstOrDefaultAsync(c => c.Id == userId);
     }
 }
-}
+
