@@ -1,7 +1,9 @@
-﻿using ExpenseTracker.Application.Users.Requests;
+﻿using ExpenseTracker.Application.Shared;
+using ExpenseTracker.Application.Users.Requests;
 using ExpenseTracker.Application.Users.Responses;
 using ExpenseTracker.Domain.Users;
 using ExpenseTracker.Infrastracture;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Services;
@@ -9,23 +11,29 @@ namespace ExpenseTracker.Services;
 public class UserService 
 {
     private readonly DatabaseContext _db;
+    private readonly IValidator<CreateUserRequest> _createUserRequestValidator;
 
-    public UserService(DatabaseContext db)
+    public UserService(DatabaseContext db, IValidator<CreateUserRequest> createUserRequestValidator)
     {
         _db = db;
+        _createUserRequestValidator = createUserRequestValidator;
     }
 
-    public async Task<User> RegisterAsync(CreateUserRequest createUser)
+    public async Task<Result<User?>> RegisterAsync(CreateUserRequest createUser)
     {
         // TODO: Write validation
-
+        var validation = _createUserRequestValidator.Validate(createUser);
+        if(!validation.IsValid)
+        {
+            return Result<User?>.Failed(null, validation.ToDictionary());
+        }
         User user = User.Create(createUser.Email, createUser.Username);
         user.SetPassword(createUser.Password);
 
         await _db.Users.AddAsync(user);
         await _db.SaveChangesAsync();
 
-        return user;
+        return Result<User?>.Succeed(user);
     }
 
     public async Task<UserResponse?> GetAsync(Guid userId, bool tracking)
