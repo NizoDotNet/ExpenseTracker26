@@ -20,7 +20,7 @@ public class UserService
         _createUserRequestValidator = createUserRequestValidator;
     }
 
-    public async Task<Result<User?>> RegisterAsync(CreateUserRequest createUser)
+    public async Task<Result<User?>> RegisterAsync(CreateUserRequest createUser, CancellationToken cancellationToken = default)
     {
         // TODO: Write validation
         var validation = _createUserRequestValidator.Validate(createUser);
@@ -32,19 +32,19 @@ public class UserService
         user.SetPassword(createUser.Password);
 
         await _db.Users.AddAsync(user);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
 
         return Result<User?>.Succeed(user);
     }
 
-    public async Task<UserResponse?> LoginUser(string email, string password)
+    public async Task<UserResponse?> LoginUser(string email, string password, CancellationToken cancellationToken = default)
     {
         password = PasswordHashingHelper.HashPassword(password);
 
         var user = await _db.Users
             .AsNoTracking()
             .Include(c => c.Balance)
-            .FirstOrDefaultAsync(c => c.Email == email && c.Password == password);
+            .FirstOrDefaultAsync(c => c.Email == email && c.Password == password, cancellationToken);
 
         if (user == null) 
             return null;
