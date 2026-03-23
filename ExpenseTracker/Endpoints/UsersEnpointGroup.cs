@@ -23,7 +23,7 @@ public static class UsersEnpointGroup
                 return TypedResults.ValidationProblem(res.Errors);
             });
 
-            route.MapGet("/login", async (LoginUserRequest loginUserRequest, UserService userService, CancellationToken cancellationToken) =>
+            route.MapPost("/login", async (LoginUserRequest loginUserRequest, UserService userService, CancellationToken cancellationToken) =>
             {
                 var user = await userService.LoginUser(loginUserRequest.Email, loginUserRequest.Password, cancellationToken);
                 if(user == null)
@@ -36,6 +36,8 @@ public static class UsersEnpointGroup
                     )
                 );
             });
+
+            route.MapPost("/logout", () => Results.SignOut());
             return route; 
         }
     }

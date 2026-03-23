@@ -3,6 +3,7 @@ using ExpenseTracker.Endpoints;
 using ExpenseTracker.Infrastracture;
 using ExpenseTracker.Services;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +14,12 @@ builder.Services.AddDbContext<DatabaseContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TransactionService>();
+builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddAuthentication()
+builder.Services.AddAuthentication(c =>
+{
+    c.DefaultScheme = "cookie";
+})
     .AddCookie("cookie");
 
 builder.Services.AddAuthorization();
@@ -25,6 +30,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 app.UseAuthentication();
 app.UseAuthorization();
@@ -36,6 +42,6 @@ app.MapGroup("/auth")
 app.MapGet("/user", (HttpContext ctx) =>
 {
     return Results.Ok(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier));
-});
+}).RequireAuthorization();
 app.Run();
 

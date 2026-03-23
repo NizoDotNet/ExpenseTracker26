@@ -18,10 +18,10 @@ public class TransactionService
     private readonly DatabaseContext _db;
     private readonly HttpContext _ctx;
     private readonly IValidator<CreateTransationRequest> _validator;
-    public TransactionService(DatabaseContext db, HttpContext ctx, IValidator<CreateTransationRequest> validator)
+    public TransactionService(DatabaseContext db, IHttpContextAccessor ctxAccessor, IValidator<CreateTransationRequest> validator)
     {
         _db = db;
-        _ctx = ctx;
+        _ctx = ctxAccessor.HttpContext!;
         _validator = validator;
     }
 

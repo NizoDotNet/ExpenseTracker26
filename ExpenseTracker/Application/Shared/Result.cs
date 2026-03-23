@@ -15,7 +15,7 @@ public struct Result<T>
 
     public static Result<T> Succeed(T value)
     {
-        return new(value, false, null);
+        return new(value, true, null);
     }
     public static Result<T> Failed(T value, IDictionary<string, string[]> errors)
     {

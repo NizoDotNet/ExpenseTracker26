@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+﻿using ExpenseTracker.Migrations;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace ExpenseTracker.Domain.Helpers;
 
@@ -7,14 +9,11 @@ public class PasswordHashingHelper
 {
     public static string HashPassword(string password)
     {
-        byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
-        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: password!,
-            salt: salt,
-            prf: KeyDerivationPrf.HMACSHA256,
-            iterationCount: 100000,
-            numBytesRequested: 256 / 8));
+        using var sha256 = SHA256.Create();
+        var bytes = Encoding.UTF8.GetBytes(password);
+        var hash = sha256.ComputeHash(bytes);
 
-        return hashed;
+        return Convert.ToBase64String(hash);
+
     }
 }

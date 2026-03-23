@@ -11,19 +11,20 @@ public class User : Entity<Guid>
     private readonly List<DomainEvent> _events = new();
     private User()
     {
-        Balance = Users.Balance.Create();
     }
     internal User(string email, string userName)
     {
         Id = Guid.NewGuid();
         Email = email;
         UserName = userName;
+        Balance = Balance.Create();
+        
     }
     public string Email { get; private set; } = null!;
     public string UserName { get; private set; } = null!;
     public string Password { get; private set; } = null!;
     public Guid BalanceId { get; init; }
-    public Balance Balance { get; init; }
+    public Balance Balance { get; private set; }
     public IReadOnlyList<DomainEvent> DomainEvents => _events.AsReadOnly();
 
     public void Raise(DomainEvent domainEvent)
