@@ -1,26 +1,34 @@
-﻿using ExpenseTracker.Application.Transactions.Events;
+﻿using ExpenseTracker.Application.Shared;
+using ExpenseTracker.Application.Transactions.Events;
 using ExpenseTracker.Application.Transactions.Requests;
 using ExpenseTracker.Domain.Transactions;
 using ExpenseTracker.Domain.Transactions.Events;
 using ExpenseTracker.Infrastracture;
-using System.Runtime.InteropServices;
+using FluentValidation;
 
 namespace ExpenseTracker.Services;
 
-public class TransactionService 
+public class TransactionService
 {
     private readonly DatabaseContext _db;
     private readonly HttpContext _ctx;
-    public TransactionService(DatabaseContext db, HttpContext ctx)
+    private readonly IValidator<CreateTransationRequest> _validator;
+    public TransactionService(DatabaseContext db, HttpContext ctx, IValidator<CreateTransationRequest> validator)
     {
         _db = db;
         _ctx = ctx;
+        _validator = validator;
     }
 
-    public async Task<Transaction> InsertAsync(CreateTransationRequest createTransationRequest, CancellationToken cancellationToken = default)
+    public async Task<Result<Transaction?>> InsertAsync(CreateTransationRequest createTransationRequest, CancellationToken cancellationToken = default)
     {
         // Validate Transaction
+        var validation = _validator.Validate(createTransationRequest);
 
+        if(!validation.IsValid)
+        {
+            return Result<Transaction?>.Failed(null, validation.ToDictionary());
+        }
         Transaction transaction = Transaction.Create(
             createTransationRequest.BalanceId,
             createTransationRequest.Name,
@@ -36,6 +44,6 @@ public class TransactionService
         await transactionCreatedHandler.Handle((TransactionCreated)transaction.Events[0], cancellationToken);
 
         await _db.SaveChangesAsync();
-        return transaction;
+        return Result<Transaction?>.Succeed(transaction);
     }
 }
