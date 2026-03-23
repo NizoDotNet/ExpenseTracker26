@@ -14,7 +14,8 @@ public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
         var endOfWeek = startOfWeek.AddDays(7);
 
         var query = dbContext.Transactions
-           .Where(t => t.DateTime >= startOfWeek && t.DateTime < endOfWeek);
+            .AsNoTracking()
+            .Where(t => t.DateTime >= startOfWeek && t.DateTime < endOfWeek);
 
         if (isIncome != null)
         {

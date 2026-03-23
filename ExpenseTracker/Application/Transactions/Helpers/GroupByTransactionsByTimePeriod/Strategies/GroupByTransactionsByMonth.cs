@@ -13,6 +13,7 @@ public class GroupByTransactionsByMonth : IGroupByTransactionByTimePeriod
         var endOfYear = startOfYear.AddYears(1);
 
         var query = dbContext.Transactions
+            .AsNoTracking()
             .Where(t => t.DateTime >= startOfYear && t.DateTime < endOfYear);
 
         if (isIncome != null)
