@@ -27,7 +27,7 @@ public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
             .Select(g => new
             {
                 Date = g.Key,
-                Total = g.Sum(x => x.Amount)
+                Total = Math.Abs(g.Sum(x => x.Amount))
             })
             .ToListAsync();
 
