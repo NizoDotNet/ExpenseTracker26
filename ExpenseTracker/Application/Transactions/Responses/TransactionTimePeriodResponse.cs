@@ -5,17 +5,14 @@ namespace ExpenseTracker.Application.Transactions.Responses;
 public record TransactionTimePeriodResponse
 {
     private decimal _amount;
-    public TransactionTimePeriodResponse(Guid id, decimal amount, string time, TransactionCategoryResponse category)
+    public TransactionTimePeriodResponse(decimal amount, string label)
     {
-        Id = id;
         Amount = amount;
-        Time = time;
-        Category = category;
+        Label = label;
     }
-    public Guid Id { get; private set; }
+
+    public string Label { get; }
     public decimal Amount { get => _amount; private set => _amount = value; }
     public TransactionType Type => _amount > 0 ? TransactionType.Income : TransactionType.Expense;
-    public string Time { get; set; }
-    public TransactionCategoryResponse Category { get; set; }
 
 }

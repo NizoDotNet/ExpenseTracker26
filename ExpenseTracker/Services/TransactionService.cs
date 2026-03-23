@@ -77,8 +77,9 @@ public class TransactionService
         return await PagedResult<TransactionResponse>.Create(transactionsQuery, page, pageSize);
     }
 
-    public async Task<Dictionary<string, TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(TimePeriod timePeriod)
+    public async Task<Dictionary<string, TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(TimePeriod timePeriod, DateTimeOffset? dateTime = null)
     {
+        dateTime ??= DateTimeOffset.UtcNow;
         //Expression<Func<Transaction, bool>> getTimePeriod = timePeriod switch
         //{
         //    TimePeriod.Year => transaction => transaction.DateTime >= DateTimeOffset.Parse($"01.01.{transaction.DateTime.Year}")

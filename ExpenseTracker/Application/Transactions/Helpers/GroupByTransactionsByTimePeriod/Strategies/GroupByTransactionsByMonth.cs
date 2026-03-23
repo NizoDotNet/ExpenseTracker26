@@ -1,0 +1,41 @@
+﻿using ExpenseTracker.Application.Transactions.Responses;
+using ExpenseTracker.Infrastracture;
+using Microsoft.EntityFrameworkCore;
+
+namespace ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByTimePeriod.Strategies;
+
+public class GroupByTransactionsByMonth : IGroupByTransactionByTimePeriod
+{
+    public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, CancellationToken cancellationToken = default)
+    {
+
+        var startOfYear = new DateTime(dateTime.Year, 1, 1);
+        var endOfYear = startOfYear.AddYears(1);
+
+        var grouped = await dbContext.Transactions
+            .Where(t => t.DateTime >= startOfYear && t.DateTime < endOfYear)
+            .GroupBy(t => t.DateTime.Month)
+            .Select(g => new
+            {
+                Month = g.Key,
+                Total = g.Sum(x => x.Amount)
+            })
+            .ToListAsync();
+
+        return Enumerable.Range(1, 12)
+            .GroupJoin(grouped,
+                month => month,
+                g => g.Month,
+                (month, g) =>
+                {
+                    var item = g.FirstOrDefault();
+                    var date = new DateTime(dateTime.Year, month, 1);
+
+                    return new TransactionTimePeriodResponse(
+                        item?.Total ?? 0,
+                        date.ToString("MMM") 
+                    );
+                })
+            .ToList();
+    }
+}
