@@ -13,6 +13,5 @@ public record TransactionTimePeriodResponse
 
     public string Label { get; }
     public decimal Amount { get => _amount; private set => _amount = value; }
-    public TransactionType Type => _amount > 0 ? TransactionType.Income : TransactionType.Expense;
 
 }

@@ -5,5 +5,5 @@ namespace ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByT
 
 public interface IGroupByTransactionByTimePeriod
 {
-    Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, CancellationToken cancellationToken = default);
+    Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, bool? isIncome = null, CancellationToken cancellationToken = default);
 }

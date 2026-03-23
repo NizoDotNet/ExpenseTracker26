@@ -6,13 +6,20 @@ namespace ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByT
 
 public class GroupByTransactionsByMonth : IGroupByTransactionByTimePeriod
 {
-    public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, CancellationToken cancellationToken = default)
+    public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, bool? isIncome = null,CancellationToken cancellationToken = default)
     {
 
         var startOfYear = new DateTime(dateTime.Year, 1, 1);
         var endOfYear = startOfYear.AddYears(1);
 
-        var grouped = await dbContext.Transactions
+        var query = dbContext.Transactions
+            .Where(t => t.DateTime >= startOfYear && t.DateTime < endOfYear);
+
+        if(isIncome != null)
+        {
+            query = query.Where(c => (bool)isIncome ? c.Amount > 0 :  c.Amount < 0);
+        }
+        var grouped = await query
             .Where(t => t.DateTime >= startOfYear && t.DateTime < endOfYear)
             .GroupBy(t => t.DateTime.Month)
             .Select(g => new

@@ -6,14 +6,21 @@ namespace ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByT
 
 public class GroupTransactionsByWeek : IGroupByTransactionByTimePeriod
 {
-    public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, CancellationToken cancellationToken = default)
+    public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, bool? isIncome = null, CancellationToken cancellationToken = default)
     {
         int diff = (7 + (dateTime.DayOfWeek - DayOfWeek.Monday)) % 7;
 
         var startOfWeek = dateTime.Date.AddDays(-diff);
         var endOfWeek = startOfWeek.AddDays(7);
 
-        var grouped = await dbContext.Transactions
+        var query = dbContext.Transactions
+           .Where(t => t.DateTime >= startOfWeek && t.DateTime < endOfWeek);
+
+        if (isIncome != null)
+        {
+            query = query.Where(c => (bool)isIncome ? c.Amount > 0 : c.Amount < 0);
+        }
+        var grouped = await query
             .Where(t => t.DateTime >= startOfWeek && t.DateTime < endOfWeek)
             .GroupBy(t => t.DateTime.Date)
             .Select(g => new
