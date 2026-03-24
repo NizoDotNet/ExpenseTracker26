@@ -4,6 +4,7 @@ using ExpenseTracker.Application.Transactions.Requests;
 using ExpenseTracker.Application.Transactions.Responses;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace ExpenseTracker.Endpoints;
@@ -14,22 +15,24 @@ public static class TransactionsEndpointsGroup
     {
         public RouteGroupBuilder MapTransactionsEndpoints()
         {
-            route.MapGet("/", GetTransactions);
+            route.MapGet("/", Get);
+            route.MapDelete("/{transactionId}", Delete);
+            route.MapPatch("/{transactionId}", Update);
 
             route.MapGet("/categories", async (TransactionService transactionService) =>
             {
                 return await transactionService.GetTransactionCategoriesAsync();
             });
 
-            route.MapGet("/time-period", GetTransactionsByTimePeriod);
-            route.MapGet("/income-expense", GetTransactionIncomeExpense);
+            route.MapGet("/time-period", GetByTimePeriod);
+            route.MapGet("/income-expense", GetIncomeExpense);
 
-            route.MapPost("/", InsertTransaction);
+            route.MapPost("/", Insert);
             return route;
         }
     }
 
-    internal static async Task<Results<Ok<PagedResult<TransactionResponse>>, BadRequest>> GetTransactions(
+    internal static async Task<Results<Ok<PagedResult<TransactionResponse>>, BadRequest>> Get(
         int page,
         int? pageSize,
         HttpContext ctx,
@@ -48,7 +51,54 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, BadRequest, NotFound>> GetTransactionsByTimePeriod(
+    internal static async Task<Results<Ok, BadRequest>> Delete(
+        [FromRoute] Guid transactionId,
+        TransactionService transactionService,
+        HttpContext ctx,
+        CancellationToken cancellationToken)
+    {
+        Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
+
+        if (userId == default)
+        {
+            return TypedResults.BadRequest();
+        }
+        var res = await transactionService.DeleteAsync(transactionId, userId, cancellationToken);
+        if(!res.IsSuccess)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        return TypedResults.Ok();
+    }
+    internal static async Task<Results<Ok, ValidationProblem, BadRequest>> Update(
+        [FromRoute] Guid transactionId,
+        UpdateTransactionRequest updateTransactionRequest,
+        TransactionService transactionService,
+        HttpContext ctx,
+        CancellationToken cancellationToken)
+    {
+        Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
+
+        if (userId == default)
+        {
+            return TypedResults.BadRequest();
+        }
+        var res = await transactionService
+            .UpdateAsync(transactionId, userId, updateTransactionRequest, cancellationToken);
+
+        if(!res.IsSuccess)
+        {
+            if(res.Errors.Any())
+            {
+                return TypedResults.ValidationProblem(res.Errors);
+            }
+            return TypedResults.BadRequest();
+        }
+
+        return TypedResults.Ok();
+    }
+    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, BadRequest, NotFound>> GetByTimePeriod(
         TimePeriod timePeriod,
         bool? isIncome,
         DateTimeOffset? dateTime,
@@ -76,7 +126,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-    internal static async Task<Results<Created, ValidationProblem, BadRequest, NotFound>> InsertTransaction(
+    internal static async Task<Results<Created, ValidationProblem, BadRequest, NotFound>> Insert(
         CreateTransationRequest createTransation,
         TransactionService transactionService,
         HttpContext ctx,
@@ -104,7 +154,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Created();
     }
-    internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, BadRequest, NotFound>> GetTransactionIncomeExpense(
+    internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, BadRequest, NotFound>> GetIncomeExpense(
         TimePeriod timePeriod,
         DateTimeOffset? dateTime,
         HttpContext ctx,
