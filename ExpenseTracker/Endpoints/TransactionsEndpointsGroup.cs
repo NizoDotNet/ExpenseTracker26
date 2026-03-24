@@ -29,7 +29,12 @@ public static class TransactionsEndpointsGroup
         }
     }
 
-    internal static async Task<Results<Ok<PagedResult<TransactionResponse>>, BadRequest>> GetTransactions(int page, int? pageSize, HttpContext ctx, TransactionService transactionService, CancellationToken cancellationToken)
+    internal static async Task<Results<Ok<PagedResult<TransactionResponse>>, BadRequest>> GetTransactions(
+        int page,
+        int? pageSize,
+        HttpContext ctx,
+        TransactionService transactionService,
+        CancellationToken cancellationToken)
     {
         pageSize ??= 5;
         Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
@@ -43,7 +48,14 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, BadRequest, NotFound>> GetTransactionsByTimePeriod(TimePeriod timePeriod, bool? isIncome, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken)
+    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, BadRequest, NotFound>> GetTransactionsByTimePeriod(
+        TimePeriod timePeriod,
+        bool? isIncome,
+        DateTimeOffset? dateTime,
+        HttpContext ctx,
+        UserService userService,
+        TransactionService transactionService,
+        CancellationToken cancellationToken)
     {
         dateTime = dateTime is null ? DateTimeOffset.UtcNow : ((DateTimeOffset)dateTime).ToUniversalTime();
         Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
@@ -64,7 +76,12 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-    internal static async Task<Results<Created, ValidationProblem, BadRequest, NotFound>> InsertTransaction(CreateTransationRequest createTransation, TransactionService transactionService, HttpContext ctx, UserService userService, CancellationToken cancellationToken)
+    internal static async Task<Results<Created, ValidationProblem, BadRequest, NotFound>> InsertTransaction(
+        CreateTransationRequest createTransation,
+        TransactionService transactionService,
+        HttpContext ctx,
+        UserService userService,
+        CancellationToken cancellationToken)
     {
         Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
 
@@ -87,7 +104,13 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Created();
     }
-    internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, BadRequest, NotFound>> GetTransactionIncomeExpense(TimePeriod timePeriod, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken)
+    internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, BadRequest, NotFound>> GetTransactionIncomeExpense(
+        TimePeriod timePeriod,
+        DateTimeOffset? dateTime,
+        HttpContext ctx,
+        UserService userService,
+        TransactionService transactionService,
+        CancellationToken cancellationToken)
     {
         dateTime = dateTime is null ? DateTimeOffset.UtcNow : ((DateTimeOffset)dateTime).ToUniversalTime();
         Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
