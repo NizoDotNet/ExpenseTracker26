@@ -13,27 +13,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Services;
 
-public class TransactionService
+public class TransactionService(
+    DatabaseContext db,
+    IHttpContextAccessor ctxAccessor,
+    IValidator<CreateTransationRequest> createTransactionValidator,
+    IValidator<UpdateTransactionRequest> updateTransactionValidator)
 {
-    private readonly DatabaseContext _db;
-    private readonly HttpContext _ctx;
-    private readonly IValidator<CreateTransationRequest> _validator;
-    public TransactionService(DatabaseContext db, IHttpContextAccessor ctxAccessor, IValidator<CreateTransationRequest> validator)
-    {
-        _db = db;
-        _ctx = ctxAccessor.HttpContext!;
-        _validator = validator;
-    }
-
+    private readonly HttpContext _ctx = ctxAccessor.HttpContext!;
+    
     public Task<List<TransactionCategory>> GetTransactionCategoriesAsync()
     {
-        return _db.TransactionTypes
+        return db.TransactionTypes
             .ToListAsync();
     }
     public async Task<Result<Transaction?>> InsertAsync(Guid balanceId, CreateTransationRequest createTransationRequest, CancellationToken cancellationToken = default)
     {
         // Validate Transaction
-        var validation = _validator.Validate(createTransationRequest);
+        var validation = createTransactionValidator.Validate(createTransationRequest);
 
         if (!validation.IsValid)
         {
@@ -47,25 +43,25 @@ public class TransactionService
             createTransationRequest.Amount,
             createTransationRequest.TransactionCategoryId);
 
-        await _db.Transactions.AddAsync(transaction);
+        await db.Transactions.AddAsync(transaction);
 
         // Need add domain event dispatcher later
-        TransactionCreatedHandler transactionCreatedHandler = new(_db, _ctx);
+        TransactionCreatedHandler transactionCreatedHandler = new(db, _ctx);
         await transactionCreatedHandler.Handle((TransactionCreated)transaction.Events[0], cancellationToken);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         return Result<Transaction?>.Succeed(transaction);
     }
 
     public async Task<PagedResult<TransactionResponse>> GetAllAsyncWithPagination(Guid userId, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var balanceId = await _db.Balances
+        var balanceId = await db.Balances
             .Where(c => c.UserId == userId)
             .AsNoTracking()
             .Select(c => c.Id)
             .FirstOrDefaultAsync();
 
-        var transactionsQuery = _db.Transactions
+        var transactionsQuery = db.Transactions
             .AsNoTracking()
             .Where(c => c.BalanceId == balanceId)
             .Include(c => c.TransactionCategory)
@@ -88,39 +84,60 @@ public class TransactionService
 
         IGroupByTransactionByTimePeriod groupByTransactionByTimePeriod = GetStrategy(timePeriod);
 
-        return await groupByTransactionByTimePeriod.Handle(_db, balanceId, ((DateTimeOffset)dateTime).ToUniversalTime(), isIncome, cancellationToken);
+        return await groupByTransactionByTimePeriod.Handle(db, balanceId, ((DateTimeOffset)dateTime).ToUniversalTime(), isIncome, cancellationToken);
     }
 
-    public async Task<Result<int>> DeleteAsync(Guid transactionId, Guid userId, CancellationToken cancellationToken)
+    public async Task<Result<Transaction?>> DeleteAsync(Guid transactionId, Guid userId, CancellationToken cancellationToken)
     {
-        Guid balanceId = await _db.Balances
-            .Where(c => c.UserId == userId)
-            .AsNoTracking()
-            .Select(c => c.Id)
-            .FirstOrDefaultAsync();
-
-        if(balanceId == default)
+        Transaction? transaction;
+        (bool flowControl, Result<Transaction?> result) = await IsTransactionBelongsToUser(transactionId, userId);
+        if (!flowControl || result.Value is null)
         {
-            return Result<int>.Failed(-1, new Dictionary<string, string[]>());
+            return result;
         }
 
-        var transaction = await _db.Transactions
+        db.Transactions.Remove(result.Value);
+        int res = await db.SaveChangesAsync(cancellationToken);
+        return Result<Transaction?>.Succeed(result.Value);
+    }
+
+    public async Task<Result<Transaction?>> UpdateAsync(Guid transactionId, Guid userId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
+    {
+        var validation = createTransactionValidator.Validate(createTransationRequest);
+
+        if (!validation.IsValid)
+        {
+            return Result<Transaction?>.Failed(null, validation.ToDictionary());
+        }
+    }
+
+    private async Task<(bool flowControl, Result<Transaction?> result)> IsTransactionBelongsToUser(Guid transactionId, Guid userId)
+    {
+        Guid balanceId = await db.Balances
+                    .Where(c => c.UserId == userId)
+                    .AsNoTracking()
+                    .Select(c => c.Id)
+                    .FirstOrDefaultAsync();
+
+        if (balanceId == default)
+        {
+            return (flowControl: false, result: Result<Transaction?>.Failed(null, new Dictionary<string, string[]>()));
+        }
+
+        var transaction = await db.Transactions
             .Where(c => c.Id == transactionId)
             .FirstOrDefaultAsync();
-
-        if(transaction == null)
+        if (transaction == null)
         {
-            return Result<int>.Failed(-1, new Dictionary<string, string[]>());
+            return (flowControl: false, result: Result<Transaction?>.Failed(null, new Dictionary<string, string[]>()));
         }
 
-        if(transaction.BalanceId != balanceId)
+        if (transaction.BalanceId != balanceId)
         {
-            return Result<int>.Failed(-1, new Dictionary<string, string[]>());
+            return (flowControl: false, result: Result<Transaction?>.Failed(null, new Dictionary<string, string[]>()));
         }
 
-        _db.Transactions.Remove(transaction);
-        int res = await _db.SaveChangesAsync(cancellationToken);
-        return Result<int>.Succeed(res);
+        return (flowControl: true, result: Result<Transaction?>.Succeed(transaction));
     }
     private IGroupByTransactionByTimePeriod GetStrategy(TimePeriod timePeriod)
         => timePeriod switch

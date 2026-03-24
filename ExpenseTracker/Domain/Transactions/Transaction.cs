@@ -34,6 +34,18 @@ public class Transaction : Entity<Guid>
         _events.Add(domainEvent);
     }
 
+
+    public void Update(string name, string? description, DateTimeOffset dateTime, decimal amount, int transactionCategoryId)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentNullException(nameof(name));
+
+        Name = name;
+        Description = description;
+        DateTime = dateTime;
+        Amount = amount;
+        TransactionCategoryId = transactionCategoryId;
+    }
     public static Transaction Create(Guid balanceId, string name, string? description, DateTimeOffset dateTime, decimal amount, int transactionCategoryId)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -43,4 +55,6 @@ public class Transaction : Entity<Guid>
         transaction.Raise(new TransactionCreated(balanceId, amount));
         return transaction;
     }
+
 }
+
