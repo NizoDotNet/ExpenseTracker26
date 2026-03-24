@@ -18,7 +18,19 @@ public static class TransactionsEndpointsGroup
             route.MapGet("/", Get);
             route.MapDelete("/{transactionId}", Delete);
             route.MapPatch("/{transactionId}", Update);
+            route.MapGet("/by-category", async (TransactionService transactionService, DateTimeOffset? date, HttpContext ctx, CancellationToken cancellationToken) =>
+            {
+                Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
 
+                if (userId == default)
+                {
+                    return TypedResults.BadRequest();
+                }
+                date ??= DateTimeOffset.UtcNow;
+
+
+                return await transactionService.GetExpensesByCategory(userId, date, cancellationToken);
+            });
             route.MapGet("/categories", async (TransactionService transactionService) =>
             {
                 return await transactionService.GetTransactionCategoriesAsync();

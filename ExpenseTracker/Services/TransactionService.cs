@@ -100,7 +100,26 @@ public class TransactionService(
         int res = await db.SaveChangesAsync(cancellationToken);
         return Result<Transaction?>.Succeed(result.Value);
     }
+    public async Task<List<TransactionExpenseByCategoryResponse>> GetExpensesByCategory(Guid userId, TimePeriod timePeriod, DateTimeOffset? date, CancellationToken cancellationToken)
+    {
+        var balanceId = await db.Balances
+            .Where(c => c.UserId == userId)
+            .AsNoTracking()
+            .Select(c => c.Id)
+            .FirstOrDefaultAsync();
 
+        var transactions = await db.Transactions
+            .Where(c => c.BalanceId == balanceId)
+            .Where(c => c.Amount < 0)
+            .Include(c => c.TransactionCategory)
+            .GroupBy(c => c.TransactionCategory.Name)
+            .Select(c => new TransactionExpenseByCategoryResponse(
+                c.Key,
+                c.Sum(c => c.Amount)))
+            .ToListAsync(cancellationToken);
+
+        return transactions;
+    }
     public async Task<Result<Transaction?>> UpdateAsync(Guid transactionId, Guid userId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
     {
         var validation = updateTransactionValidator.Validate(updateTransactionRequest);
@@ -126,7 +145,6 @@ public class TransactionService(
         return Result<Transaction?>.Succeed(transaction);
 
     }
-
     private async Task<(bool flowControl, Result<Transaction?> result)> IsTransactionBelongsToUser(Guid transactionId, Guid userId)
     {
         Guid balanceId = await db.Balances
