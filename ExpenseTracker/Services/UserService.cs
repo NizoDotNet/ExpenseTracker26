@@ -71,5 +71,13 @@ public class UserService
                 new BalanceResponse(c.Balance.Amount)))
             .FirstOrDefaultAsync(c => c.Id == userId);
     }
+
+    public async Task<Guid?> GetUserBalanceId(Guid userId)
+    {
+        return await _db.Balances
+            .Where(c => c.UserId == userId)
+            .Select(c => c.Id)
+            .FirstOrDefaultAsync();
+    }
 }
 

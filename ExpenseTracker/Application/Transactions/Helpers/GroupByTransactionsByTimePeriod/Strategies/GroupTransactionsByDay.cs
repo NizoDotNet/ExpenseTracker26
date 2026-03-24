@@ -6,7 +6,7 @@ namespace ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByT
 
 public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
 {
-    public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, DateTimeOffset dateTime, bool? isIncome = null, CancellationToken cancellationToken = default)
+    public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, Guid balanceId, DateTimeOffset dateTime, bool? isIncome = null, CancellationToken cancellationToken = default)
     {
         int diff = (7 + (dateTime.DayOfWeek - DayOfWeek.Monday)) % 7;
 
@@ -15,6 +15,7 @@ public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
 
         var query = dbContext.Transactions
             .AsNoTracking()
+            .Where(c => c.BalanceId == balanceId)
             .Where(t => t.DateTime >= startOfWeek && t.DateTime < endOfWeek);
 
         if (isIncome != null)

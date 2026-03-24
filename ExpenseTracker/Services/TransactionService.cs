@@ -77,12 +77,12 @@ public class TransactionService
         return await PagedResult<TransactionResponse>.Create(transactionsQuery, page, pageSize);
     }
 
-    public async Task<List<TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(TimePeriod timePeriod, bool? isIncome = null, DateTimeOffset? dateTime = null, CancellationToken cancellationToken = default)
+    public async Task<List<TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(Guid balanceId, TimePeriod timePeriod, bool? isIncome = null, DateTimeOffset? dateTime = null, CancellationToken cancellationToken = default)
     {
         dateTime ??= DateTimeOffset.UtcNow;
         IGroupByTransactionByTimePeriod groupByTransactionByTimePeriod = GetStrategy(timePeriod);
 
-        return await groupByTransactionByTimePeriod.Handle(_db, (DateTimeOffset)dateTime, isIncome, cancellationToken);
+        return await groupByTransactionByTimePeriod.Handle(_db, balanceId, (DateTimeOffset)dateTime, isIncome, cancellationToken);
     }
 
 
