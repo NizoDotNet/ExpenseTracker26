@@ -39,9 +39,5 @@ app.MapGroup("/auth")
     .MapAuthEndpoints()
     .WithTags("Auth");
 
-app.MapGet("/user", (HttpContext ctx) =>
-{
-    return Results.Ok(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier));
-}).RequireAuthorization();
 app.Run();
 
