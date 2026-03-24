@@ -26,7 +26,7 @@ public static class UsersEnpointGroup
             route.MapPost("/login", async (LoginUserRequest loginUserRequest, UserService userService, CancellationToken cancellationToken) =>
             {
                 var user = await userService.LoginUser(loginUserRequest.Email, loginUserRequest.Password, cancellationToken);
-                if(user == null)
+                if (user == null)
                 {
                     return TypedResults.BadRequest();
                 }
@@ -41,13 +41,13 @@ public static class UsersEnpointGroup
             {
                 Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
 
-                if(userId == default)
+                if (userId == default)
                 {
                     return TypedResults.BadRequest();
                 }
 
                 var user = await userService.GetAsync(userId, false);
-                if(user == null)
+                if (user == null)
                 {
                     return TypedResults.NotFound();
                 }
@@ -57,7 +57,7 @@ public static class UsersEnpointGroup
             }).RequireAuthorization();
 
             route.MapPost("/logout", () => Results.SignOut());
-            return route; 
+            return route;
         }
     }
 }

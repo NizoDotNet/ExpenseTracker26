@@ -2,14 +2,13 @@
 using ExpenseTracker.Application.Shared.Enums;
 using ExpenseTracker.Application.Transactions.Requests;
 using ExpenseTracker.Application.Transactions.Responses;
-using ExpenseTracker.Domain.Users;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Security.Claims;
 
 namespace ExpenseTracker.Endpoints;
 
-public static class TransactionsEndpointsGroup 
+public static class TransactionsEndpointsGroup
 {
     extension(RouteGroupBuilder route)
     {
@@ -44,10 +43,9 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-
-    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, BadRequest, NotFound>> GetTransactionsByTimePeriod(TimePeriod timePeriod, bool? isIncome, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken) 
+    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, BadRequest, NotFound>> GetTransactionsByTimePeriod(TimePeriod timePeriod, bool? isIncome, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken)
     {
-        dateTime = dateTime is null ? DateTimeOffset.UtcNow : ((DateTimeOffset) dateTime).ToUniversalTime();
+        dateTime = dateTime is null ? DateTimeOffset.UtcNow : ((DateTimeOffset)dateTime).ToUniversalTime();
         Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
 
         if (userId == default)
@@ -57,7 +55,7 @@ public static class TransactionsEndpointsGroup
 
         Guid? balanceId = await userService.GetUserBalanceId(userId);
 
-        if(balanceId == null)
+        if (balanceId == null)
         {
             return TypedResults.NotFound();
         }
@@ -66,8 +64,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-
-    internal static async Task<Results<Created, ValidationProblem, BadRequest, NotFound>> InsertTransaction(CreateTransationRequest createTransation, TransactionService transactionService, HttpContext ctx, UserService userService, CancellationToken cancellationToken) 
+    internal static async Task<Results<Created, ValidationProblem, BadRequest, NotFound>> InsertTransaction(CreateTransationRequest createTransation, TransactionService transactionService, HttpContext ctx, UserService userService, CancellationToken cancellationToken)
     {
         Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
 

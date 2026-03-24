@@ -46,7 +46,7 @@ public class UserService
             .Include(c => c.Balance)
             .FirstOrDefaultAsync(c => c.Email == email && c.Password == password, cancellationToken);
 
-        if (user == null) 
+        if (user == null)
             return null;
 
 

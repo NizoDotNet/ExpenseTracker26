@@ -1,8 +1,6 @@
 ﻿using ExpenseTracker.Domain.Helpers;
 using ExpenseTracker.Domain.Primitives;
 using ExpenseTracker.Domain.Users.Events;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using System.Security.Cryptography;
 
 namespace ExpenseTracker.Domain.Users;
 
@@ -18,7 +16,7 @@ public class User : Entity<Guid>
         Email = email;
         UserName = userName;
         Balance = Balance.Create();
-        
+
     }
     public string Email { get; private set; } = null!;
     public string UserName { get; private set; } = null!;

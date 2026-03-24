@@ -4,7 +4,6 @@ using ExpenseTracker.Infrastracture;
 using ExpenseTracker.Services;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
