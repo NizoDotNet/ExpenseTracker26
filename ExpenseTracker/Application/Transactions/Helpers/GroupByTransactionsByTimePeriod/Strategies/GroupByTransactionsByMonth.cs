@@ -1,6 +1,7 @@
 ﻿using ExpenseTracker.Application.Transactions.Responses;
 using ExpenseTracker.Infrastracture;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByTimePeriod.Strategies;
 
@@ -41,7 +42,7 @@ public class GroupByTransactionsByMonth : IGroupByTransactionByTimePeriod
 
                     return new TransactionTimePeriodResponse(
                         item?.Total ?? 0,
-                        date.ToString("MMM")
+                        date.ToString("MMM", CultureInfo.InvariantCulture)
                     );
                 })
             .ToList();
