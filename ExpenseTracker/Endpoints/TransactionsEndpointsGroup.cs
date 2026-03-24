@@ -23,6 +23,7 @@ public static class TransactionsEndpointsGroup
             });
 
             route.MapGet("/time-period", GetTransactionsByTimePeriod);
+            route.MapGet("/income-expense", GetTransactionIncomeExpense);
 
             route.MapPost("/", InsertTransaction);
             return route;
@@ -88,5 +89,34 @@ public static class TransactionsEndpointsGroup
         }
 
         return TypedResults.Created();
+    }
+    internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, BadRequest, NotFound>> GetTransactionIncomeExpense(TimePeriod timePeriod, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken)
+    {
+        dateTime = dateTime is null ? DateTimeOffset.UtcNow : ((DateTimeOffset)dateTime).ToUniversalTime();
+        Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
+
+        if (userId == default)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        Guid? balanceId = await userService.GetUserBalanceId(userId);
+
+        if (balanceId == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        var income = await transactionService.GetTransactionTimePeriodResponsesAsync((Guid)balanceId, timePeriod, true, dateTime, cancellationToken);
+        var expense = await transactionService.GetTransactionTimePeriodResponsesAsync((Guid)balanceId, timePeriod, false, dateTime, cancellationToken);
+
+        var res = new TransactionIncomeExpenseResponse()
+        {
+            Labels = income.Select(c => c.Label).ToList(),
+            Income = income.Select(c => new TransactionExpenseAmount(c.Amount)).ToList(),
+            Expense = expense.Select(c => new TransactionExpenseAmount(c.Amount)).ToList(),
+        };
+
+        return TypedResults.Ok(res);
     }
 }
