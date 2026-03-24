@@ -10,8 +10,8 @@ public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
     {
         int diff = (7 + (dateTime.DayOfWeek - DayOfWeek.Monday)) % 7;
 
-        var startOfWeek = dateTime.Date.AddDays(-diff);
-        var endOfWeek = startOfWeek.AddDays(7);
+        DateTimeOffset startOfWeek = dateTime.UtcDateTime.AddDays(-diff);
+        DateTimeOffset endOfWeek = startOfWeek.AddDays(7);
 
         var query = dbContext.Transactions
             .AsNoTracking()
@@ -30,7 +30,7 @@ public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
                 Date = g.Key,
                 Total = Math.Abs(g.Sum(x => x.Amount))
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Enumerable.Range(0, 7)
             .Select(i => startOfWeek.AddDays(i))

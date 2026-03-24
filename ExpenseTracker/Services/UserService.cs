@@ -50,12 +50,13 @@ public class UserService
             return null;
 
 
-        return new UserResponse(user.Id, user.Email, user.UserName, new(user.Balance.Amount));
+        return UserResponse.Map(user);
     }
 
     public async Task<UserResponse?> GetAsync(Guid userId, bool tracking)
     {
-        IQueryable<User> userQuery = _db.Users;
+        IQueryable<User> userQuery = _db.Users
+            .Where(c => c.Id == userId);
 
         if (!tracking)
         {
@@ -64,12 +65,9 @@ public class UserService
         }
 
         return await userQuery
-            .Select(c => new UserResponse(
-                c.Id,
-                c.Email,
-                c.UserName,
-                new BalanceResponse(c.Balance.Amount)))
-            .FirstOrDefaultAsync(c => c.Id == userId);
+            .Include(c => c.Balance)
+            .Select(c => UserResponse.Map(c))
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Guid?> GetUserBalanceId(Guid userId)

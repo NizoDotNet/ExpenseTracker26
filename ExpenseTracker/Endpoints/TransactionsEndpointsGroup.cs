@@ -26,6 +26,11 @@ public static class TransactionsEndpointsGroup
                 return Results.Ok(res);
             });
 
+            route.MapGet("/categories", async (TransactionService transactionService) =>
+            {
+                return await transactionService.GetTransactionCategoriesAsync();
+            });
+
             route.MapGet("/time-period", async (TimePeriod timePeriod, bool? isIncome, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken) =>
             {
                 dateTime = dateTime is null ? DateTimeOffset.UtcNow : ((DateTimeOffset)dateTime).ToUniversalTime();
@@ -48,9 +53,22 @@ public static class TransactionsEndpointsGroup
                 return Results.Ok(res);
             });
 
-            route.MapPost("/", async (CreateTransationRequest createTransation, TransactionService transactionService, CancellationToken cancellationToken) =>
+            route.MapPost("/", async (CreateTransationRequest createTransation, TransactionService transactionService, HttpContext ctx, UserService userService, CancellationToken cancellationToken) =>
             {
-                var res = await transactionService.InsertAsync(createTransation, cancellationToken);
+                Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
+
+                if (userId == default)
+                {
+                    return TypedResults.BadRequest();
+                }
+
+                Guid? balanceId = await userService.GetUserBalanceId(userId);
+
+                if (balanceId == null)
+                {
+                    return TypedResults.NotFound();
+                }
+                var res = await transactionService.InsertAsync((Guid)balanceId, createTransation, cancellationToken);
                 if(!res.IsSuccess)
                 {
                     return TypedResults.ValidationProblem(res.Errors);

@@ -9,7 +9,7 @@ public class GroupByTransactionsByMonth : IGroupByTransactionByTimePeriod
     public async Task<List<TransactionTimePeriodResponse>> Handle(DatabaseContext dbContext, Guid balanceId, DateTimeOffset dateTime, bool? isIncome = null, CancellationToken cancellationToken = default)
     {
 
-        var startOfYear = new DateTime(dateTime.Year, 1, 1);
+        var startOfYear = new DateTime(dateTime.Year, 1, 1).ToUniversalTime();
         var endOfYear = startOfYear.AddYears(1);
 
         var query = dbContext.Transactions
@@ -29,7 +29,7 @@ public class GroupByTransactionsByMonth : IGroupByTransactionByTimePeriod
                 Month = g.Key,
                 Total = Math.Abs(g.Sum(x => x.Amount))
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Enumerable.Range(1, 12)
             .GroupJoin(grouped,

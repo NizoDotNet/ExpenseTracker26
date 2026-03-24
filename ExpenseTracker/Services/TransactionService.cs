@@ -25,7 +25,12 @@ public class TransactionService
         _validator = validator;
     }
 
-    public async Task<Result<Transaction?>> InsertAsync(CreateTransationRequest createTransationRequest, CancellationToken cancellationToken = default)
+    public Task<List<TransactionCategory>> GetTransactionCategoriesAsync()
+    {
+        return _db.TransactionTypes
+            .ToListAsync();
+    }
+    public async Task<Result<Transaction?>> InsertAsync(Guid balanceId, CreateTransationRequest createTransationRequest, CancellationToken cancellationToken = default)
     {
         // Validate Transaction
         var validation = _validator.Validate(createTransationRequest);
@@ -35,12 +40,12 @@ public class TransactionService
             return Result<Transaction?>.Failed(null, validation.ToDictionary());
         }
         Transaction transaction = Transaction.Create(
-            createTransationRequest.BalanceId,
+            balanceId,
             createTransationRequest.Name,
             createTransationRequest.Description,
             createTransationRequest.DateTime,
             createTransationRequest.Amount,
-            createTransationRequest.TransactionTypeId);
+            createTransationRequest.TransactionCategoryId);
 
         await _db.Transactions.AddAsync(transaction);
 
@@ -80,9 +85,10 @@ public class TransactionService
     public async Task<List<TransactionTimePeriodResponse>> GetTransactionTimePeriodResponsesAsync(Guid balanceId, TimePeriod timePeriod, bool? isIncome = null, DateTimeOffset? dateTime = null, CancellationToken cancellationToken = default)
     {
         dateTime ??= DateTimeOffset.UtcNow;
+
         IGroupByTransactionByTimePeriod groupByTransactionByTimePeriod = GetStrategy(timePeriod);
 
-        return await groupByTransactionByTimePeriod.Handle(_db, balanceId, (DateTimeOffset)dateTime, isIncome, cancellationToken);
+        return await groupByTransactionByTimePeriod.Handle(_db, balanceId, ((DateTimeOffset)dateTime).ToUniversalTime(), isIncome, cancellationToken);
     }
 
 

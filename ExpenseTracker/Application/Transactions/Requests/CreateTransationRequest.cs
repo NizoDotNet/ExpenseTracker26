@@ -3,7 +3,8 @@
 public record CreateTransationRequest(
     string Name,
     string? Description,
-    DateTimeOffset DateTime,
     decimal Amount,
-    Guid BalanceId,
-    int TransactionTypeId);
+    int TransactionCategoryId)
+{
+    public DateTimeOffset DateTime { get => field; set => field = value.ToUniversalTime(); }
+}

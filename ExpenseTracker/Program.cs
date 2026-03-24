@@ -39,5 +39,9 @@ app.MapGroup("/auth")
     .MapAuthEndpoints()
     .WithTags("Auth");
 
+app.MapGroup("/transactions")
+    .MapTransactionsEndpoints()
+    .RequireAuthorization()
+    .WithTags("Transactions");
 app.Run();
 
