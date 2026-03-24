@@ -1,6 +1,8 @@
 ﻿using ExpenseTracker.Application.Shared;
 using ExpenseTracker.Application.Shared.Enums;
 using ExpenseTracker.Application.Transactions.Events;
+using ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByCategory;
+using ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByCategory.Strategies;
 using ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByTimePeriod;
 using ExpenseTracker.Application.Transactions.Helpers.GroupByTransactionsByTimePeriod.Strategies;
 using ExpenseTracker.Application.Transactions.Requests;
@@ -82,7 +84,7 @@ public class TransactionService(
     {
         dateTime ??= DateTimeOffset.UtcNow;
 
-        IGroupByTransactionByTimePeriod groupByTransactionByTimePeriod = GetStrategy(timePeriod);
+        IGroupByTransactionByTimePeriod groupByTransactionByTimePeriod = GetStrategyForGroupingByTimePeriod(timePeriod);
 
         return await groupByTransactionByTimePeriod.Handle(db, balanceId, ((DateTimeOffset)dateTime).ToUniversalTime(), isIncome, cancellationToken);
     }
@@ -108,15 +110,12 @@ public class TransactionService(
             .Select(c => c.Id)
             .FirstOrDefaultAsync();
 
-        var transactions = await db.Transactions
-            .Where(c => c.BalanceId == balanceId)
-            .Where(c => c.Amount < 0)
-            .Include(c => c.TransactionCategory)
-            .GroupBy(c => c.TransactionCategory.Name)
-            .Select(c => new TransactionExpenseByCategoryResponse(
-                c.Key,
-                c.Sum(c => c.Amount)))
-            .ToListAsync(cancellationToken);
+        if(balanceId == default)
+        {
+            return [];
+        }
+
+        var transactions = await (GetStrategyForGroupingByCategory(timePeriod)).Handle(db, balanceId, date ?? DateTimeOffset.UtcNow, cancellationToken);
 
         return transactions;
     }
@@ -173,10 +172,17 @@ public class TransactionService(
 
         return (flowControl: true, result: Result<Transaction?>.Succeed(transaction));
     }
-    private IGroupByTransactionByTimePeriod GetStrategy(TimePeriod timePeriod)
+    private IGroupByTransactionByTimePeriod GetStrategyForGroupingByTimePeriod(TimePeriod timePeriod)
         => timePeriod switch
         {
             TimePeriod.Day => new GroupTransactionsByDay(),
             TimePeriod.Month => new GroupByTransactionsByMonth()
         };
+    private IGroupByTransactionsByCategory GetStrategyForGroupingByCategory(TimePeriod timePeriod) 
+        => timePeriod switch
+    {
+        TimePeriod.Day => new GroupTransactionsCategoriesByDay(),
+        TimePeriod.Month => new GroupTransactionsCategoriesByMonth()
+    };
+
 }
