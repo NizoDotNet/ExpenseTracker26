@@ -91,7 +91,37 @@ public class TransactionService
         return await groupByTransactionByTimePeriod.Handle(_db, balanceId, ((DateTimeOffset)dateTime).ToUniversalTime(), isIncome, cancellationToken);
     }
 
+    public async Task<Result<int>> DeleteAsync(Guid transactionId, Guid userId, CancellationToken cancellationToken)
+    {
+        Guid balanceId = await _db.Balances
+            .Where(c => c.UserId == userId)
+            .AsNoTracking()
+            .Select(c => c.Id)
+            .FirstOrDefaultAsync();
 
+        if(balanceId == default)
+        {
+            return Result<int>.Failed(-1, new Dictionary<string, string[]>());
+        }
+
+        var transaction = await _db.Transactions
+            .Where(c => c.Id == transactionId)
+            .FirstOrDefaultAsync();
+
+        if(transaction == null)
+        {
+            return Result<int>.Failed(-1, new Dictionary<string, string[]>());
+        }
+
+        if(transaction.BalanceId != balanceId)
+        {
+            return Result<int>.Failed(-1, new Dictionary<string, string[]>());
+        }
+
+        _db.Transactions.Remove(transaction);
+        int res = await _db.SaveChangesAsync(cancellationToken);
+        return Result<int>.Succeed(res);
+    }
     private IGroupByTransactionByTimePeriod GetStrategy(TimePeriod timePeriod)
         => timePeriod switch
         {
