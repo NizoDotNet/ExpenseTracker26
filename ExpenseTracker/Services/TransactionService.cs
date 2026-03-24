@@ -103,12 +103,28 @@ public class TransactionService(
 
     public async Task<Result<Transaction?>> UpdateAsync(Guid transactionId, Guid userId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
     {
-        var validation = createTransactionValidator.Validate(createTransationRequest);
+        var validation = updateTransactionValidator.Validate(updateTransactionRequest);
 
         if (!validation.IsValid)
         {
             return Result<Transaction?>.Failed(null, validation.ToDictionary());
         }
+        (bool flowControl, Result<Transaction?> result) = await IsTransactionBelongsToUser(transactionId, userId);
+        if (!flowControl || result.Value is null)
+        {
+            return result;
+        }
+
+        var transaction = result.Value;
+        transaction.Update(updateTransactionRequest.Name,
+            updateTransactionRequest.Description,
+            updateTransactionRequest.DateTime,
+            updateTransactionRequest.Amount,
+            updateTransactionRequest.TransactionCategoryId);
+
+        await db.SaveChangesAsync();
+        return Result<Transaction?>.Succeed(transaction);
+
     }
 
     private async Task<(bool flowControl, Result<Transaction?> result)> IsTransactionBelongsToUser(Guid transactionId, Guid userId)
