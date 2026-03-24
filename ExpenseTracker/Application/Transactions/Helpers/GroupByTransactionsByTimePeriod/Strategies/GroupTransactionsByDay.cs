@@ -23,7 +23,6 @@ public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
             query = query.Where(c => (bool)isIncome ? c.Amount > 0 : c.Amount < 0);
         }
         var grouped = await query
-            .Where(t => t.DateTime >= startOfWeek && t.DateTime < endOfWeek)
             .GroupBy(t => t.DateTime.Date)
             .Select(g => new
             {
@@ -33,7 +32,7 @@ public class GroupTransactionsByDay : IGroupByTransactionByTimePeriod
             .ToListAsync(cancellationToken);
 
         return Enumerable.Range(0, 7)
-            .Select(i => startOfWeek.AddDays(i))
+            .Select(i => startOfWeek.AddDays(i).Date)
             .GroupJoin(grouped,
                 d => d,
                 g => g.Date,

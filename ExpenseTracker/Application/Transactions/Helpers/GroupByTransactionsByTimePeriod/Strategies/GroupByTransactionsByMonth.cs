@@ -22,7 +22,6 @@ public class GroupByTransactionsByMonth : IGroupByTransactionByTimePeriod
             query = query.Where(c => (bool)isIncome ? c.Amount > 0 : c.Amount < 0);
         }
         var grouped = await query
-            .Where(t => t.DateTime >= startOfYear && t.DateTime < endOfYear)
             .GroupBy(t => t.DateTime.Month)
             .Select(g => new
             {

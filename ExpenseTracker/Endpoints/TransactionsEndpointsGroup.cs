@@ -31,7 +31,7 @@ public static class TransactionsEndpointsGroup
                 return await transactionService.GetTransactionCategoriesAsync();
             });
 
-            route.MapGet("/time-period", async (TimePeriod timePeriod, bool? isIncome, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken) =>
+            route.MapGet("/time-period", async  (TimePeriod timePeriod, bool? isIncome, DateTimeOffset? dateTime, HttpContext ctx, UserService userService, TransactionService transactionService, CancellationToken cancellationToken) =>
             {
                 dateTime = dateTime is null ? DateTimeOffset.UtcNow : ((DateTimeOffset)dateTime).ToUniversalTime();
                 Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
