@@ -45,7 +45,7 @@ public static class TransactionsEndpointsGroup
         }
     }
 
-    internal static async Task<Results<Ok<PagedResult<TransactionResponse>>, BadRequest>> Get(
+    internal static async Task<Results<Ok<PagedResult<TransactionResponse>>, UnauthorizedHttpResult>> Get(
         int page,
         int? pageSize,
         HttpContext ctx,
@@ -57,14 +57,14 @@ public static class TransactionsEndpointsGroup
 
         if (userId == default)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.Unauthorized();
         }
 
         var res = await transactionService.GetAllAsyncWithPagination(userId, page, (int)pageSize, cancellationToken);
 
         return TypedResults.Ok(res);
     }
-    internal static async Task<Results<Ok, BadRequest>> Delete(
+    internal static async Task<Results<Ok, UnauthorizedHttpResult, BadRequest>> Delete(
         [FromRoute] Guid transactionId,
         TransactionService transactionService,
         HttpContext ctx,
@@ -74,7 +74,7 @@ public static class TransactionsEndpointsGroup
 
         if (userId == default)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.Unauthorized();
         }
         var res = await transactionService.DeleteAsync(transactionId, userId, cancellationToken);
         if(!res.IsSuccess)
@@ -84,7 +84,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok();
     }
-    internal static async Task<Results<Ok, ValidationProblem, BadRequest>> Update(
+    internal static async Task<Results<Ok, ValidationProblem, BadRequest, UnauthorizedHttpResult>> Update(
         [FromRoute] Guid transactionId,
         UpdateTransactionRequest updateTransactionRequest,
         TransactionService transactionService,
@@ -95,7 +95,7 @@ public static class TransactionsEndpointsGroup
 
         if (userId == default)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.Unauthorized();
         }
         var res = await transactionService
             .UpdateAsync(transactionId, userId, updateTransactionRequest, cancellationToken);
@@ -111,7 +111,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok();
     }
-    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, BadRequest, NotFound>> GetByTimePeriod(
+    internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, UnauthorizedHttpResult, NotFound>> GetByTimePeriod(
         TimePeriod timePeriod,
         bool? isIncome,
         DateTimeOffset? dateTime,
@@ -125,7 +125,7 @@ public static class TransactionsEndpointsGroup
 
         if (userId == default)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.Unauthorized();
         }
 
         Guid? balanceId = await userService.GetUserBalanceId(userId);
@@ -139,7 +139,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-    internal static async Task<Results<Created, ValidationProblem, BadRequest, NotFound>> Insert(
+    internal static async Task<Results<Created, ValidationProblem, UnauthorizedHttpResult, NotFound>> Insert(
         CreateTransationRequest createTransation,
         TransactionService transactionService,
         HttpContext ctx,
@@ -150,7 +150,7 @@ public static class TransactionsEndpointsGroup
 
         if (userId == default)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.Unauthorized();
         }
 
         Guid? balanceId = await userService.GetUserBalanceId(userId);
@@ -167,7 +167,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Created();
     }
-    internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, BadRequest, NotFound>> GetIncomeExpense(
+    internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, UnauthorizedHttpResult, NotFound>> GetIncomeExpense(
         TimePeriod timePeriod,
         DateTimeOffset? dateTime,
         HttpContext ctx,
@@ -180,7 +180,7 @@ public static class TransactionsEndpointsGroup
 
         if (userId == default)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.Unauthorized();
         }
 
         Guid? balanceId = await userService.GetUserBalanceId(userId);
