@@ -2,6 +2,7 @@
 using ExpenseTracker.Application.Shared.Enums;
 using ExpenseTracker.Application.Transactions.Requests;
 using ExpenseTracker.Application.Transactions.Responses;
+using ExpenseTracker.Domain.Users;
 using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -18,20 +19,7 @@ public static class TransactionsEndpointsGroup
             route.MapGet("/", Get);
             route.MapDelete("/{transactionId}", Delete);
             route.MapPatch("/{transactionId}", Update);
-            route.MapGet("/by-category", async (TransactionService transactionService, TimePeriod timePeriod, DateTimeOffset? date, HttpContext ctx, CancellationToken cancellationToken) =>
-            {
-                Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
-
-                if (userId == default)
-                {
-                    return Results.Unauthorized();
-                }
-                date ??= DateTimeOffset.UtcNow;
-
-
-                var transactions = await transactionService.GetExpensesByCategory(userId, timePeriod, date, cancellationToken);
-                return Results.Ok(transactions);
-            });
+            route.MapGet("/by-category", GetByCategory);
             route.MapGet("/categories", async (TransactionService transactionService) =>
             {
                 return await transactionService.GetTransactionCategoriesAsync();
@@ -110,6 +98,25 @@ public static class TransactionsEndpointsGroup
         }
 
         return TypedResults.Ok();
+    }
+    internal static async Task<Results<Ok<List<TransactionExpenseByCategoryResponse>>, UnauthorizedHttpResult>> GetByCategory(
+        TransactionService transactionService,
+        TimePeriod timePeriod,
+        DateTimeOffset? date,
+        HttpContext ctx,
+        CancellationToken cancellationToken) 
+    {
+        Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
+
+        if (userId == default)
+        {
+            return TypedResults.Unauthorized();
+        }
+        date ??= DateTimeOffset.UtcNow;
+
+
+        var transactions = await transactionService.GetExpensesByCategory(userId, timePeriod, date, cancellationToken);
+        return TypedResults.Ok(transactions);
     }
     internal static async Task<Results<Ok<List<TransactionTimePeriodResponse>>, UnauthorizedHttpResult, NotFound>> GetByTimePeriod(
         TimePeriod timePeriod,
