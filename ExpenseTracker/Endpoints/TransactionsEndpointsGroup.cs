@@ -24,6 +24,18 @@ public static class TransactionsEndpointsGroup
             {
                 return await transactionService.GetTransactionCategoriesAsync();
             });
+            route.MapGet("/calculated-balance", async (TransactionService transactionService, HttpContext ctx) =>
+            {
+                Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
+
+                if (userId == default)
+                {
+                    return Results.Unauthorized();
+                }
+
+                return Results.Ok(await transactionService.GetUsersCalculatedBalanceStats(userId));
+
+            });
 
             route.MapGet("/time-period", GetByTimePeriod);
             route.MapGet("/income-expense", GetIncomeExpense);

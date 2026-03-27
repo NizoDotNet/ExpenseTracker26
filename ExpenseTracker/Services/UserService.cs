@@ -75,52 +75,6 @@ public class UserService
             .Select(c => c.Id)
             .FirstOrDefaultAsync();
     }
-    public async Task<UserBalanceCalculatedStats> GetUsersCalculatedBalanceStats(Guid userId)
-    {
-        // Get balance
-        Balance? currentBalance = await _db.Balances
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .FirstOrDefaultAsync();
-        if(currentBalance == null)
-        {
-            return new(0, 0, 0, 0, 0);
-        }
-
-        // Calculate previouse month balance
-        var now = DateTimeOffset.UtcNow;
-        var previouseMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
-        decimal previousMonthTransactionsSum = await _db.Transactions
-            .AsNoTracking()
-            .Where(c => c.BalanceId == currentBalance.Id &&
-                    c.DateTime <=  now && 
-                    c.DateTime >= previouseMonth)
-            .SumAsync(c => c.Amount);
-
-        decimal previouseMonthBalance = currentBalance.Amount - previousMonthTransactionsSum;
-
-        // Income and Expense
-        var result = await _db.Transactions
-            .AsNoTracking()
-            .Where(c => c.BalanceId == currentBalance.Id &&
-                        c.DateTime >= previouseMonth &&
-                        c.DateTime <= now)
-            .GroupBy(_ => 1)
-            .Select(g => new
-            {
-                Income = g.Where(x => x.Amount > 0).Sum(x => x.Amount),
-                Expense = g.Where(x => x.Amount < 0).Sum(x => x.Amount)
-            })
-            .FirstOrDefaultAsync();
-
-        decimal income = result?.Income ?? 0;
-        decimal expense = result?.Expense ?? 0;
-
-        // Saving rate
-
-        decimal savingRate = ((income - expense) / income) * 100;
-
-        return new(currentBalance.Amount, currentBalance.Amount - previouseMonthBalance, income, expense, savingRate);
-    }
+    
 }
 
