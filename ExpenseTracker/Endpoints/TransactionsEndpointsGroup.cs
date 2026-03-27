@@ -112,9 +112,9 @@ public static class TransactionsEndpointsGroup
         return TypedResults.Ok();
     }
     internal static async Task<Results<Ok<List<TransactionExpenseByCategoryResponse>>, UnauthorizedHttpResult>> GetByCategory(
-        TransactionService transactionService,
         TimePeriod timePeriod,
         DateTimeOffset? date,
+        TransactionService transactionService,
         HttpContext ctx,
         CancellationToken cancellationToken) 
     {
