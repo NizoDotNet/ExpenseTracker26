@@ -22,7 +22,16 @@ builder.Services.AddAuthentication(c =>
     .AddCookie("cookie");
 
 builder.Services.AddAuthorization();
-
+builder.Services.AddCors(c =>
+{
+    c.AddPolicy("local", p =>
+    {
+        p.WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,6 +39,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+    app.UseCors("local");
 }
 app.UseAuthentication();
 app.UseAuthorization();
