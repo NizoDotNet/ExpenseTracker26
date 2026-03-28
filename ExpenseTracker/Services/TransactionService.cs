@@ -161,7 +161,7 @@ public class TransactionService(
         // Calculate previouse month balance
         var now = DateTimeOffset.UtcNow;
         var previouseMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
-        decimal previousMonthTransactionsSum = await _db.Transactions
+        decimal previousMonthTransactionsSum = await db.Transactions
             .AsNoTracking()
             .Where(c => c.BalanceId == currentBalance.Id &&
                     c.DateTime <= now &&
