@@ -184,7 +184,7 @@ public static class TransactionsEndpointsGroup
             return TypedResults.ValidationProblem(res.Errors);
         }
 
-        return TypedResults.Created();
+        return TypedResults.Created(res.Value!.Id.ToString());
     }
     internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, UnauthorizedHttpResult, NotFound>> GetIncomeExpense(
         TimePeriod timePeriod,

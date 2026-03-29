@@ -8,4 +8,4 @@ public record TransactionResponse(
     decimal Amount,
     TransactionCategoryResponse Category);
 
-public record TransactionCategoryResponse(int Id, string CategoryName);
+public record TransactionCategoryResponse(int Id, string Name);
