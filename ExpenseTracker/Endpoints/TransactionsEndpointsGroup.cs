@@ -158,7 +158,7 @@ public static class TransactionsEndpointsGroup
 
         return TypedResults.Ok(res);
     }
-    internal static async Task<Results<Created, ValidationProblem, UnauthorizedHttpResult, NotFound>> Insert(
+    internal static async Task<Results<Ok<Guid>, ValidationProblem, UnauthorizedHttpResult, NotFound>> Insert(
         CreateTransationRequest createTransation,
         TransactionService transactionService,
         HttpContext ctx,
@@ -184,7 +184,7 @@ public static class TransactionsEndpointsGroup
             return TypedResults.ValidationProblem(res.Errors);
         }
 
-        return TypedResults.Created(res.Value!.Id.ToString());
+        return TypedResults.Ok(res.Value!.Id);
     }
     internal static async Task<Results<Ok<TransactionIncomeExpenseResponse>, UnauthorizedHttpResult, NotFound>> GetIncomeExpense(
         TimePeriod timePeriod,
