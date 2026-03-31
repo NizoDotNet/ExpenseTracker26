@@ -44,6 +44,20 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.Use(async (context, next) =>
+{
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
+    try
+    {
+        await next(context); 
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex.Message);
+    }
+});
+
 app.MapGroup("/auth")
     .MapAuthEndpoints()
     .WithTags("Auth");
