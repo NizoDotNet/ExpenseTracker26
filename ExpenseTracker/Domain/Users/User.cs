@@ -16,6 +16,7 @@ public class User : Entity<Guid>
         Email = email;
         UserName = userName;
         Balance = Balance.Create();
+        BalanceId = Balance.Id;
 
     }
     public string Email { get; private set; } = null!;

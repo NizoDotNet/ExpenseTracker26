@@ -1,4 +1,5 @@
 ﻿using ExpenseTracker.Domain.Primitives;
+using System.Runtime.CompilerServices;
 
 namespace ExpenseTracker.Domain.Users;
 
@@ -6,6 +7,7 @@ public class Balance : Entity<Guid>
 {
     private Balance()
     {
+        Id = Guid.NewGuid();
         Amount = 0.00m;
     }
 
