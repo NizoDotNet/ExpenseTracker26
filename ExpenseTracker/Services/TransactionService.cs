@@ -14,6 +14,7 @@ using ExpenseTracker.Domain.Users;
 using ExpenseTracker.Infrastracture;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace ExpenseTracker.Services;
 
@@ -93,7 +94,6 @@ public class TransactionService(
 
     public async Task<Result<Transaction?>> DeleteAsync(Guid transactionId, Guid userId, CancellationToken cancellationToken)
     {
-        Transaction? transaction;
         (bool flowControl, Result<Transaction?> result) = await IsTransactionBelongsToUser(transactionId, userId);
         if (!flowControl || result.Value is null)
         {
@@ -101,6 +101,13 @@ public class TransactionService(
         }
 
         db.Transactions.Remove(result.Value);
+        await db.Balances
+            .Where(c => c.UserId == userId)
+            .ExecuteUpdateAsync(c =>
+            {
+                c.SetProperty(p => p.Amount, p => p.Amount - result.Value.Amount);
+            });
+
         int res = await db.SaveChangesAsync(cancellationToken);
         return Result<Transaction?>.Succeed(result.Value);
     }
@@ -188,8 +195,8 @@ public class TransactionService(
         decimal expense = result?.Expense ?? 0;
 
         // Saving rate
-
-        decimal savingRate = ((income - expense) / income) * 100;
+        
+        decimal savingRate = income != 0 ? ((income - expense) / income) * 100 : 0;
 
         return new(currentBalance.Amount, currentBalance.Amount - previouseMonthBalance, income, expense, savingRate);
     }
