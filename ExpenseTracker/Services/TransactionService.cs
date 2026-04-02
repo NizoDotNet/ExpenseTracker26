@@ -128,6 +128,29 @@ public class TransactionService(
 
         return transactions;
     }
+
+    public async Task<List<TransactionExpenseByCategoryResponse>> GetExpensesByCategory(Guid userId, TimePeriod timePeriod, int top, DateTimeOffset? date, CancellationToken cancellationToken)
+    {
+        var balanceId = await db.Balances
+            .Where(c => c.UserId == userId)
+            .AsNoTracking()
+            .Select(c => c.Id)
+            .FirstOrDefaultAsync();
+
+        if (balanceId == default)
+        {
+            return [];
+        }
+
+        var transactions = await (GetStrategyForGroupingByCategory(timePeriod))
+            .Handle(db, balanceId, date ?? DateTimeOffset.UtcNow, cancellationToken);
+
+        transactions = transactions.OrderBy(c => c.Amount)
+            .Take(top)
+            .ToList();
+
+        return transactions;
+    }
     public async Task<Result<Transaction?>> UpdateAsync(Guid transactionId, Guid userId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
     {
         var validation = updateTransactionValidator.Validate(updateTransactionRequest);
