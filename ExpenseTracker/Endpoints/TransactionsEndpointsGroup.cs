@@ -39,7 +39,16 @@ public static class TransactionsEndpointsGroup
 
             route.MapGet("/time-period", GetByTimePeriod);
             route.MapGet("/income-expense", GetIncomeExpense);
+            route.MapGet("/top-expense-by-category", async (int top, TimePeriod timePeriod, DateTimeOffset? dateTime, HttpContext ctx,TransactionService transactionService, CancellationToken cancellationToken) =>
+            {
+                Guid.TryParse(ctx.User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid userId);
 
+                if (userId == default)
+                {
+                    return TypedResults.Unauthorized();
+                }
+                return Results.Ok(await transactionService.GetExpensesByCategory(userId, timePeriod, top, dateTime, cancellationToken));
+            });
             route.MapPost("/", Insert);
             return route;
         }
