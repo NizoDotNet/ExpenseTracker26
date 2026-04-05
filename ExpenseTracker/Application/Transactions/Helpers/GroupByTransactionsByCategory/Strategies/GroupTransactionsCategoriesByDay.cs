@@ -24,7 +24,7 @@ public class GroupTransactionsCategoriesByDay : IGroupByTransactionsByCategory
             .GroupBy(c => c.TransactionCategory.Name)
             .Select(c => new TransactionExpenseByCategoryResponse(
                 c.Key,
-                c.Sum(c => c.Amount)))
+                Math.Abs(c.Sum(c => c.Amount))))
             .ToListAsync(cancellationToken);
 
         return transactions;
